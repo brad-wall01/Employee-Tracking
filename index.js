@@ -1,5 +1,7 @@
 const inquirer = require("inquirer")
 
+
+
 const mainPrompt = () => {
     inquirer
     .prompt([
@@ -16,51 +18,64 @@ const mainPrompt = () => {
                 'View All Departments',
                 'Add Department',
                 'Quit'
-            ]
-        }
+            ],
+            name: `selections`,
+        },
     ])
     .then((data) => {
-        mainLogic(data)
+        let tracker
+        if (data.selections==='View All Employees:'){
+            tracker = employeeTable()
+        }else if (data.selections==='Add Employee:'){
+            tracker = addEmployee()
+        } else if (data.selections==='Update Employee Role:'){
+            tracker = updateEmployeeRole()
+        } else if (data.selections==='View All Roles:'){
+            tracker = viewRole()
+        } else if (data.selections==='Add Role:'){
+            tracker = addRole()
+        } else if (data.selections==='View All Departments:'){
+            tracker = departmentTable()
+        } else if (data.selections==='Add Department:'){
+            tracker = addDepartment()
+        } else if (data.selections==='Quit'){
+            return console.log('Thank you for playing.')
+        }  
+    })
+};
+mainPrompt()
+
+function addEmployee() {
+    inquirer
+    .prompt([
+        {
+            type:`input`,
+            message:`Employees First Name`,
+            name:`firstName`
+        },
+        {
+            type:`input`,
+            message:`Employees Last Name`,
+            name:`lastName`
+        },
+        {
+            type:`list`,
+            message:`What is the role of the employee?`,
+            choices: [
+                `Forklift Operator`,
+                `Stocking Associate`,
+                `Floor Manager`,
+                `Salesman`,
+                `Sales Manager`
+            ],
+            name: `employeeRole`,
+        },
+    ])
+    .then ((data) => {
+        company_db.query(`INSERT INTO employee(first_name, last_name, role_id)VALUES($1, $2, $3)`, [data.firstName, data.lastName, `1`])
+        mainPrompt()
     })
 }
 
-mainPrompt()
 
-function loopPrompt() {
-    inquirer
-        .prompt([
-            {
-                type: 'list',
-                name: 'userAwnser',
-                message: 'Whould you like to preform another action?',
-                choices: [
-                    'Yes', 
-                    'No',
-                ]
-            }
-        ])
-        .then((data) => {
-            if(data.userAwnser === 'Yes'){
-                mainPrompt()
-            }else{
-                console.log('Thanks for using the Employee Database!')
-                console.log('Application has closed, press CTL + C to continue using terminal')
 
-            }
-        });
-}
-
-function mainLogic(data) {
-
-    employees_db.connect()
-
-    if (data.action === `View All Employees`) {
-        employees_db.query("SELECT e.id AS employee_id, e.first_name, e.last_name, r.title AS title, r.salary AS salary,  d.name AS department, m.last_name ||', '|| m.first_name manager FROM employee e INNER JOIN employee m ON m.id = e.manager_id INNER JOIN role r ON e.role_id = r.id INNER JOIN department d ON r.department_id = d.id", (err, {rows}) => {
-            if (err) {
-                console.log(err);
-            }
-            console.table(rows);
-            loopPrompt()
-        })
-    }
-}
